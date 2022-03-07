@@ -37,6 +37,12 @@ trip202101 <- read.csv("raw_data/202101-divvy-tripdata.csv")
 #   b. If not, then we standardize there column names and column types. 
 
 
+compare_df_cols(trip202101, trip202102, trip202103, trip202104, trip202105, trip202106, trip202107, trip202108, 
+                trip202109, trip202110, trip202111, trip202112)
+
+
+
+
 compare_df_cols_same(trip202101, trip202102, trip202103, trip202104, trip202105, trip202106, trip202107, trip202108, 
                      trip202109, trip202110, trip202111, trip202112)
 
@@ -46,8 +52,8 @@ compare_df_cols_same(trip202101, trip202102, trip202103, trip202104, trip202105,
 # Stack monthly's dataframes into one big dataframe. 
 
 
-all_trips <- bind_rows(trip202101, trip202102, trip202103, trip202104, trip202105, trip202106, trip202107, trip202108, 
-                       trip202109, trip202110, trip202111, trip202112)
+all_trip <- bind_rows(trip202101, trip202102, trip202103, trip202104, trip202105, trip202106, trip202107, trip202108, 
+                      trip202109, trip202110, trip202111, trip202112)
 
 
 
@@ -55,15 +61,43 @@ all_trips <- bind_rows(trip202101, trip202102, trip202103, trip202104, trip20210
 # Examine columns
 
 
-str(all_trips)
-
-# Data Cleaning. To do:
-# 1. Verify if categorical values in rideable_type, start_station_name, end_station_name, member_casual where consistent. 
-# 2. Convert started_at and ended_at columns into datetime format.  
-# 3. Populate missing values in end_lat and end_lng columns
+str(all_trip)
 
 
 
+
+# Data Cleaning. ------------------------------------------------------------------------------------------------------
+
+
+
+# To do: 
+# 1. Verify if categorical values in rideable_type, and member_casual were consistent. 
+# 2. Convert started_at and ended_at columns into datetime columns.   
+# 3. Separate datetime columns in to two column.  
+
+
+
+
+
+# 1. Verify if categorical values in rideable_type, and member_casual were consistent. 
+
+table(all_trip$rideable_type)
+
+
+table(all_trip$member_casual)
+
+
+
+
+# 2. Convert started_at and ended_at columns into datetime columns.  
+
+
+all_trip <- all_trip %>% 
+  mutate(
+    started_at = as.Date(started_at),
+    ended_at = as.Date(ended_at)
+    
+  )
 
 
 

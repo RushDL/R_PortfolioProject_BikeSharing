@@ -37,3 +37,8 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
+
+
+
+# Ignore raw data files to commit in Git
+raw_data/
