@@ -6,7 +6,7 @@ install.packages("tidyverse")
 library(tidyverse) # helps wrangle data
 library(lubridate) # helps wrangle date attributes
 library(ggplot2) # helps visualize data
-library(janitor) #helps also wrangle data
+library(janitor) # helps clean data
 
 
 
@@ -58,10 +58,18 @@ all_trip <- bind_rows(trip202101, trip202102, trip202103, trip202104, trip202105
 
 
 
-# Examine columns
+
+
+
+# Inspect new dataframe created. 
+
 
 
 str(all_trip)
+head(all_trip)
+tail(all_trip)
+summary(all_trip)
+
 
 
 
@@ -94,10 +102,43 @@ table(all_trip$member_casual)
 
 all_trip <- all_trip %>% 
   mutate(
-    started_at = as.Date(started_at),
-    ended_at = as.Date(ended_at)
-    
-  )
+    started_at = ymd_hms(started_at),
+    ended_at = ymd_hms(ended_at)
+    )  
+
+
+
+
+# create new columns for time of the day, day, month, year, day of week and hour.
+
+
+
+all_trip <- all_trip %>% 
+  mutate(
+    time = format(as.POSIXct(started_at), format = "%H:%M:%S"),
+    day = format(started_at, "%d"),
+    month = format(started_at, "%m"),
+    year = format(started_at, "%Y"),
+    day_of_week = format(started_at, "%A"),
+    hour = hour(started_at)
+    )  
+
+
+
+
+# calculate the duration of the trip
+
+
+all_trip$duration <- difftime(all_trip$ended_at, all_trip $started_at, units = "secs")
+
+
+test <- all_trip %>% 
+  distinct(ride_id, .keep_all = TRUE)
+  # group_by(started_at, ended_at, start_station_id, end_station_id ) %>%
+  # mutate(row_num = row_number()) %>% 
+  # filter(row_num > 1)
+
+
 
 
 
