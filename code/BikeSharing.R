@@ -1,7 +1,7 @@
 # Install and load packages -------------------------------------------------------------------------------------------
 
 
-install.packages("tidyverse")
+# install.packages("tidyverse")
 
 library(tidyverse) # helps wrangle data
 library(lubridate) # helps wrangle date attributes
@@ -117,7 +117,7 @@ all_trip <- all_trip %>%
   mutate(
     time = format(as.POSIXct(started_at), format = "%H:%M:%S"),
     day = format(started_at, "%d"),
-    month = format(started_at, "%m"),
+    month = month.abb(format(started_at, "%m")),
     year = format(started_at, "%Y"),
     day_of_week = format(started_at, "%A"),
     hour = hour(started_at)
@@ -129,14 +129,78 @@ all_trip <- all_trip %>%
 # calculate the duration of the trip
 
 
-all_trip$duration <- difftime(all_trip$ended_at, all_trip $started_at, units = "secs")
+all_trip$ride_length <- difftime(all_trip$ended_at, all_trip $started_at, units = "secs")
 
 
-test <- all_trip %>% 
-  distinct(ride_id, .keep_all = TRUE)
-  # group_by(started_at, ended_at, start_station_id, end_station_id ) %>%
-  # mutate(row_num = row_number()) %>% 
-  # filter(row_num > 1)
+
+
+
+# Convert ride_length from 'difftime num' to numeric so that we can run calculations on the data. 
+
+
+
+is.difftime(all_trip$ride_length)
+
+
+
+all_trip$ride_length <- as.numeric(as.character(all_trip$ride_length))
+
+
+
+is.numeric(all_trip$ride_length)
+
+
+
+
+
+
+
+
+
+# Remove "bad" data. 
+# The dataframe includes a few hundred entries when bikes were taken out of docks and checked for quality by Divvy 
+# or ride_length was negative.
+
+
+
+
+all_trip_v2 <- all_trip %>% 
+  distinct(ride_id, .keep_all = TRUE) %>% 
+  filter(ride_length > 60)
+
+
+
+
+# Analyze --------------------------------
+
+
+
+
+# Descriptive analysis on ride_length (all figures in seconds)
+
+mean(all_trip_v2$ride_length) #average (total ride length / rides)
+
+median(all_trip_v2$ride_length) #midpoint number of ride lengths
+
+max(all_trip_v2$ride_length) #longest ride
+
+min(all_trip_v2$ride_length) #shortest ride
+
+
+
+
+# Compare members and casual users.
+
+aggregate(all_trip_v2$ride_length ~ all_trip_v2$member_casual, FUN = mean)
+
+aggregate(all_trip_v2$ride_length ~ all_trip_v2$member_casual, FUN = median)
+
+aggregate(all_trip_v2$ride_length ~ all_trip_v2$member_casual, FUN = min)
+
+aggregate(all_trip_v2$ride_length ~ all_trip_v2$member_casual, FUN = max)
+
+
+
 
 
 
