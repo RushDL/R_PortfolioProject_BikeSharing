@@ -117,7 +117,7 @@ all_trip <- all_trip %>%
   mutate(
     time = format(as.POSIXct(started_at), format = "%H:%M:%S"),
     day = format(started_at, "%d"),
-    month = month.abb(format(started_at, "%m")),
+    month = format(format(started_at, "%m")),
     year = format(started_at, "%Y"),
     day_of_week = format(started_at, "%A"),
     hour = hour(started_at)
@@ -205,8 +205,91 @@ aggregate(all_trip_v2$ride_length ~ all_trip_v2$member_casual, FUN = max)
 
 
 
+# See the average ride time by each day for members vs casual users
+
+
+aggregate(all_trip_v2$ride_length ~ all_trip_v2$member_casual + all_trip_v2$day_of_week, FUN = mean)
+
+
+
+
+# Arrange days of the week in chronological order.
+
+
+all_trip_v2$day_of_week <- ordered(all_trip_v2$day_of_week, levels = c
+                                    ("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" ))
+
+
+
+
+# Rerun the average ride time by each day for members vs casual users
+
+
+aggregate(all_trip_v2$ride_length ~ all_trip_v2$member_casual + all_trip_v2$day_of_week, FUN = mean)
 
 
 
 
 
+
+
+# Analyze ridership data by usertype and weekday. 
+
+
+all_trip_v2 %>% 
+  mutate(weekday = wday(started_at, label = TRUE)) %>% 
+  group_by(member_casual, weekday) %>% 
+  summarise(number_of_rides = n(), average_duration = mean(ride_length)) %>%
+  arrange(member_casual, weekday)
+
+
+
+
+
+# Share ---------------------------------------------------------------------------------------------------
+
+
+
+
+# Create the Average ride duration per user
+
+
+
+all_trip_v2 %>% 
+  group_by(member_casual) %>% 
+  summarise(average_duration = mean(ride_length)) %>% 
+  ggplot(aes(x = member_casual, y = average_duration, fill = member_casual)) +
+    geom_col(position = "dodge") +
+    labs(title = "Average ride duration", subtitle = "casual vs. member", caption = "Jan 2021 - Dec 2021 ")
+
+
+
+
+# Create a visualization for daily average duration
+
+
+all_trip_v2 %>% 
+  mutate(weekday = wday(started_at, label = TRUE)) %>% 
+  group_by(member_casual, weekday) %>% 
+  summarise(number_of_rides = n()
+            ,average_duration = mean(ride_length)) %>% 
+  arrange(member_casual, weekday)  %>% 
+  ggplot(aes(x = weekday, y = average_duration, fill = member_casual)) +
+    geom_col(position = "dodge") + 
+    labs(title = "Average Ride Durationm per Day", subtitle = "casual vs. member")
+
+
+
+
+# Visualize the number of rides by rider type
+
+
+all_trip_v2 %>% 
+  mutate(weekday = wday(started_at, label = TRUE)) %>% 
+  group_by(member_casual, weekday) %>% 
+  summarise(number_of_rides = n()
+            ,average_duration = mean(ride_length)) %>% 
+  arrange(member_casual, weekday)  %>% 
+  ggplot(aes(x = weekday, y = number_of_rides, fill = member_casual)) +
+  geom_col(position = "dodge") +
+  labs(title = "Total Number of Rides", subtitle = "casual vs. member")
