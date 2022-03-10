@@ -1,0 +1,128 @@
+---
+title: 'Google Analytics Capstone : Bike Sharing Case Study'
+author: "Russhel De Leon"
+date: "3/10/2022"
+output: pdf_document
+---
+
+
+
+## How Does a Bike-Share Navigate Speedy Success?
+Google Analytics Capstone
+
+
+
+#### Scenario
+The director of marketing believes the company’s future success depends on maximizing the number of annual memberships. Therefore, your team wants to understand how casual riders and annual members use Cyclistic bikes differently. From these insights,your team will design a new marketing strategy to convert casual riders into annual members. But first, Cyclistic executives must approve your recommendations, so they must be backed up with compelling data insights and professional data visualizations.
+
+
+
+
+## Ask
+The business task is to better understand how annual members and casual riders differ. A descriptive analysis will help them to understand the difference between the two types of riders and to develop a new marketing strategy in converting casual riders into annual members.
+
+
+
+## Prepare
+The data source can be found at <https://divvy-tripdata.s3.amazonaws.com/index.html>. Data is structured and organized in a wide format where each row is an observation and each column is a variable.
+
+The datasets have a different name because Cyclistic is a fictional company. For the purposes of this case study, the datasets are appropriate and will enable us to answer the business questions. The data has been made available by Motivate International Inc. under this license: <https://www.divvybikes.com/data-license-agreement>.
+
+
+
+## Process
+This step involves examining and cleaning the data. The cleaning involves standardize each column type, making sure that each column is consistent, removing duplicates  and etc. The files are large and consist of million rows. RStudio is a flexible tool that will help us to clean and analyze these files. 
+
+
+
+
+### Step 1: Setting up our environment.
+
+Tidyverse helps us wrangle data. 
+```{r load tidyverse, warning=FALSE}
+library(tidyverse) 
+```
+
+
+Lubridate helps us to format and clean date.
+```{r load lubridate}
+library(lubridate) 
+```
+
+
+Janitor package helps us to clean column. 
+```{r load janitor}
+library(janitor) 
+```
+
+
+
+### Step 2: Collect data.
+```{r Collect data}
+trip202112 <- read.csv("raw_data/202112-divvy-tripdata.csv")
+trip202111 <- read.csv("raw_data/202111-divvy-tripdata.csv")
+trip202110 <- read.csv("raw_data/202110-divvy-tripdata.csv")
+trip202109 <- read.csv("raw_data/202109-divvy-tripdata.csv")
+trip202108 <- read.csv("raw_data/202108-divvy-tripdata.csv")
+trip202107 <- read.csv("raw_data/202107-divvy-tripdata.csv")
+trip202106 <- read.csv("raw_data/202106-divvy-tripdata.csv")
+trip202105 <- read.csv("raw_data/202105-divvy-tripdata.csv")
+trip202104 <- read.csv("raw_data/202104-divvy-tripdata.csv")
+trip202103 <- read.csv("raw_data/202103-divvy-tripdata.csv")
+trip202102 <- read.csv("raw_data/202102-divvy-tripdata.csv")
+trip202101 <- read.csv("raw_data/202101-divvy-tripdata.csv")
+
+```
+
+
+
+### Step 3: Combine data into single file.
+Examine column name and type for each dataframe.
+
+```{r compare columns}
+compare_df_cols(trip202101, trip202102, trip202103, trip202104, trip202105, trip202106, trip202107, trip202108, 
+                trip202109, trip202110, trip202111, trip202112)
+```
+
+
+Verify if the all file are readily bindable.
+```{r verify bindability}
+compare_df_cols_same(trip202101, trip202102, trip202103, trip202104, trip202105, trip202106, trip202107, trip202108, 
+                     trip202109, trip202110, trip202111, trip202112)
+
+```
+
+
+Stack monthly's dataframes into one big dataframe. 
+```{r bind rows}
+all_trip <- bind_rows(trip202101, trip202102, trip202103, trip202104, trip202105, trip202106, trip202107, trip202108, 
+                      trip202109, trip202110, trip202111, trip202112)
+```
+
+
+### Step 4: Inspect new dataframe created. 
+
+str () Shows column type and observation per column.
+```{r str}
+str(all_trip)
+```
+
+
+Inspect the first 6 rows of the table
+```{r head}
+head(all_trip)
+```
+
+
+Inspect the last 6 rows of the table
+```{r tail}
+tail(all_trip)
+```
+
+
+Check the summary of each column
+```{r summary}
+summary(all_trip)
+```
+
+
