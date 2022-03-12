@@ -7,57 +7,56 @@ output: pdf_document
 
 
 
-## How Does a Bike-Share Navigate Speedy Success?
-Google Analytics Capstone
+# How Does a Bike-Share Navigate Speedy Success?  
+Google Analytics Capstone  
 
-
-
-#### Scenario
+  
+**Scenario**
 The director of marketing believes the company’s future success depends on maximizing the number of annual memberships. Therefore, your team wants to understand how casual riders and annual members use Cyclistic bikes differently. From these insights,your team will design a new marketing strategy to convert casual riders into annual members. But first, Cyclistic executives must approve your recommendations, so they must be backed up with compelling data insights and professional data visualizations.
 
+  
 
 
-
-## Ask
+## Ask  
 The business task is to better understand how annual members and casual riders differ. A descriptive analysis will help them to understand the difference between the two types of riders and to develop a new marketing strategy in converting casual riders into annual members.
 
+  
 
-
-## Prepare
+## Prepare  
 The data source can be found at <https://divvy-tripdata.s3.amazonaws.com/index.html>. Data is structured and organized in a wide format where each row is an observation and each column is a variable.
-
+  
 The datasets have a different name because Cyclistic is a fictional company. For the purposes of this case study, the datasets are appropriate and will enable us to answer the business questions. The data has been made available by Motivate International Inc. under this license: <https://www.divvybikes.com/data-license-agreement>.
 
+  
 
-
-## Process
+## Process  
 This step involves examining and cleaning the data. The cleaning involves standardize each column type, making sure that each column is consistent, removing duplicates  and etc. The files are large and consist of million rows. RStudio is a flexible tool that will help us to clean and analyze these files. 
 
 
+  
 
-
-### Step 1: Setting up our environment.
-
-Tidyverse helps us wrangle data. 
+### Step 1: Setting up our environment.  
+  
+Tidyverse helps us wrangle data.   
 ```{r load tidyverse, warning=FALSE}
 library(tidyverse) 
 ```
 
-
-Lubridate helps us to format and clean date.
+  
+Lubridate helps us to format and clean date.  
 ```{r load lubridate}
 library(lubridate) 
 ```
 
-
-Janitor package helps us to clean column. 
+  
+Janitor package helps us to clean column.   
 ```{r load janitor}
 library(janitor) 
 ```
 
+  
 
-
-### Step 2: Collect data.
+### Step 2: Collect data.  
 ```{r Collect data}
 trip202112 <- read.csv("raw_data/202112-divvy-tripdata.csv")
 trip202111 <- read.csv("raw_data/202111-divvy-tripdata.csv")
@@ -74,55 +73,308 @@ trip202101 <- read.csv("raw_data/202101-divvy-tripdata.csv")
 
 ```
 
+  
 
-
-### Step 3: Combine data into single file.
-Examine column name and type for each dataframe.
+### Step 3: Combine data into single file.  
+Examine column name and type for each dataframe.  
 
 ```{r compare columns}
 compare_df_cols(trip202101, trip202102, trip202103, trip202104, trip202105, trip202106, trip202107, trip202108, 
                 trip202109, trip202110, trip202111, trip202112)
 ```
+  
 
-
-Verify if the all file are readily bindable.
+Verify if the all file are readily bindable.  
 ```{r verify bindability}
 compare_df_cols_same(trip202101, trip202102, trip202103, trip202104, trip202105, trip202106, trip202107, trip202108, 
                      trip202109, trip202110, trip202111, trip202112)
 
 ```
+  
 
-
-Stack monthly's dataframes into one big dataframe. 
+Stack monthly's dataframes into one big dataframe.   
 ```{r bind rows}
 all_trip <- bind_rows(trip202101, trip202102, trip202103, trip202104, trip202105, trip202106, trip202107, trip202108, 
                       trip202109, trip202110, trip202111, trip202112)
 ```
+  
 
-
-### Step 4: Inspect new dataframe created. 
-
-str () Shows column type and observation per column.
+### Step 4: Inspect new dataframe created.  
+  
+str () Shows column type and observation per column.  
 ```{r str}
 str(all_trip)
 ```
 
-
-Inspect the first 6 rows of the table
+  
+Inspect the first 6 rows of the table  
 ```{r head}
 head(all_trip)
 ```
+  
 
-
-Inspect the last 6 rows of the table
+Inspect the last 6 rows of the table  
 ```{r tail}
 tail(all_trip)
 ```
 
-
-Check the summary of each column
+  
+Check the summary of each column  
 ```{r summary}
 summary(all_trip)
 ```
 
 
+  
+### Step 5: Clean the data and prepare for analysis.   
+
+  
+
+#### Upon inspecting, we identify some workarounds:   
+a. Verify if categorical values in rideable_type, and member_casual were consistent.
+b. Convert started_at and ended_at columns into datetime columns.
+c. Separate datetime columns in to two column.
+
+
+
+  
+
+
+Verify if categorical values in rideable_type were consistent.   
+```{r riddeable_type}
+table(all_trip$rideable_type)
+```
+  
+
+
+Verify if categorical values in member_casual were consistent.   
+```{r member casual}
+table(all_trip$member_casual)
+```
+  
+Note: If not consistent, standardize them.  
+
+
+
+  
+Convert started_at and ended_at columns into datetime columns.    
+```{r dateformat}
+all_trip <- all_trip %>% 
+  mutate(
+    started_at = ymd_hms(started_at),
+    ended_at = ymd_hms(ended_at)
+    )  
+```
+
+  
+
+
+create new columns for time of the day, day, month, year, day of week and hour.  
+```{r date columns}
+all_trip <- all_trip %>% 
+  mutate(
+    time = format(as.POSIXct(started_at), format = "%H:%M:%S"),
+    day = format(started_at, "%d"),
+    month = format(format(started_at, "%m")),
+    year = format(started_at, "%Y"),
+    day_of_week = format(started_at, "%A"),
+    hour = hour(started_at)
+    )  
+
+```
+  
+
+
+calculate the duration of the trip  
+```{r ride_length}
+all_trip$ride_length <- difftime(all_trip$ended_at, all_trip $started_at, units = "secs")
+```
+
+  
+Convert ride_length from 'difftime num' to numeric so that we can run calculations on the data.   
+```{r ride conversion}
+all_trip$ride_length <- as.numeric(as.character(all_trip$ride_length))
+```
+  
+Verify if the column was successfully converted.  
+```{r checking conversion}
+is.numeric(all_trip$ride_length)
+```
+
+  
+#### Remove "bad" data.  
+The dataframe includes a few hundred entries when bikes were taken out of docks and checked for quality by Divvy or ride_length was negative.  
+  
+```{r remove bad data}
+all_trip_v2 <- all_trip %>% 
+  distinct(ride_id, .keep_all = TRUE) %>% 
+  filter(ride_length > 60)
+```
+
+  
+
+## Analyze  
+### Descriptive analysis on ride_length (all figures in seconds).  
+  
+Average total ride length in seconds.   
+```{r all mean}
+mean(all_trip_v2$ride_length) 
+```
+  
+Midpoint number of ride length.  
+```{r all median}
+median(all_trip_v2$ride_length) 
+```
+
+  
+Longest ride.  
+```{r all max}
+max(all_trip_v2$ride_length) 
+```
+  
+
+
+Shortest ride.   
+```{r all min}
+min(all_trip_v2$ride_length) 
+```
+
+  
+### Compare members and casual users.  
+  
+Average total ride length.  
+```{r mean comparison}
+aggregate(all_trip_v2$ride_length ~ all_trip_v2$member_casual, FUN = mean)
+```
+  
+Midpoint number of ride length.  
+```{r mid comparison}
+aggregate(all_trip_v2$ride_length ~ all_trip_v2$member_casual, FUN = median)
+```
+  
+Shortest ride.   
+```{r min comparison}
+aggregate(all_trip_v2$ride_length ~ all_trip_v2$member_casual, FUN = min)
+```
+  
+Longest ride.  
+```{r max comparison}
+aggregate(all_trip_v2$ride_length ~ all_trip_v2$member_casual, FUN = max)
+```
+
+  
+
+
+
+
+
+### See the average ride time by each day for members vs casual users  
+```{r average per day}
+aggregate(all_trip_v2$ride_length ~ all_trip_v2$member_casual + all_trip_v2$day_of_week, FUN = mean)
+```
+
+
+Arrange days of the week in chronological order.  
+```{r arranging the day}
+all_trip_v2$day_of_week <- ordered(all_trip_v2$day_of_week, levels = c("Sunday", "Monday", "Tuesday",
+                                                                       "Wednesday", "Thursday", "Friday",
+                                                                       "Saturday" ))
+```
+  
+Rerun the average ride time by each day for members vs casual users  
+```{r rerun}
+aggregate(all_trip_v2$ride_length ~ all_trip_v2$member_casual + all_trip_v2$day_of_week, FUN = mean)
+```  
+
+  
+
+
+Analyze ridership data by usertype and weekday.  
+
+```{r}
+all_trip_v2 %>% 
+  mutate(weekday = wday(started_at, label = TRUE)) %>% 
+  group_by(member_casual, weekday) %>% 
+  summarise(number_of_rides = n(), average_duration = mean(ride_length)) %>%
+  arrange(member_casual, weekday)
+```
+
+
+
+
+## Share  
+
+  
+Create the Average ride duration per user.  
+
+```{r avg_visual}
+all_trip_v2 %>% 
+  group_by(member_casual) %>% 
+  summarise(average_duration = mean(ride_length)) %>% 
+  ggplot(aes(x = member_casual, y = average_duration, fill = member_casual)) +
+    geom_col(position = "dodge") +
+    labs(title = "Average ride duration", subtitle = "casual vs. member", caption = "Jan 2021 - Dec 2021 ")
+
+```
+
+
+
+Create a visualization for daily average duration  
+  
+```{r avg_daily}
+all_trip_v2 %>% 
+  mutate(weekday = wday(started_at, label = TRUE)) %>% 
+  group_by(member_casual, weekday) %>% 
+  summarise(number_of_rides = n()
+            ,average_duration = mean(ride_length)) %>% 
+  arrange(member_casual, weekday)  %>% 
+  ggplot(aes(x = weekday, y = average_duration, fill = member_casual)) +
+    geom_col(position = "dodge") + 
+    labs(title = "Average Ride Durationm per Day", subtitle = "casual vs. member")
+
+```
+
+
+
+
+
+Visualize the number of rides by rider type  
+  
+```{r total_rides visual}
+all_trip_v2 %>% 
+  mutate(weekday = wday(started_at, label = TRUE)) %>% 
+  group_by(member_casual, weekday) %>% 
+  summarise(number_of_rides = n()
+            ,average_duration = mean(ride_length)) %>% 
+  arrange(member_casual, weekday)  %>% 
+  ggplot(aes(x = weekday, y = number_of_rides, fill = member_casual)) +
+  geom_col(position = "dodge") +
+  labs(title = "Total Number of Rides", subtitle = "casual vs. member")
+```
+
+  
+
+### Key Fidings:  
+  
+1. Casual rider’s average ride duration is higher than members.
+2. Casual rider’s average ride duration increases during weekend.
+3. No. of rides for casual riders surged during saturday while the members ride peak at the middle of the week. 
+  
+
+
+## Act  
+  
+### Conclusion  
+1. It is possible that casual riders are sightseeing persons based on their ride duration and days of trip.
+2. The consistency of bike usage and ride durations throughout the week suggest that annual members used Cyclistic bikes for essential purposes.
+
+  
+### Next steps  
+1. **Develop a semi-membership program.** Casual riders may enjoy the same benefit as annual members but are limited to every Friday, Saturday, and Sunday only.
+2. **Analyze outliers for very long-duration trips**. Review and investigate if these trips are acceptable to the company policies.
+3. **Explore the findings**. Gather more facts that casual riders are ‘sightseeing persons’. An online survey may conduct to get the additional data needed.
+  
+
+## Appendix  
+Data source: <https://divvy-tripdata.s3.amazonaws.com/index.html>  
+Licence: <https://www.divvybikes.com/data-license-agreement>  
